@@ -34,7 +34,7 @@ async function downloadFile(fileId, outputFileName) {
 
 (async () => {
   const inputXls = "./data/names_and_links.xlsx"
-  const outputDir = "/data/downloads"
+  const outputDir = "./data/downloads"
 
   if (!fs.existsSync(outputDir)) {
     fs.mkdirSync(outputDir)
