@@ -1,0 +1,39 @@
+# Logs
+logs
+*.log
+npm-debug.log*
+
+# Dependency directories
+node_modules/
+bower_components/
+
+# Environment variables file
+.env
+
+data
+
+# Private SSH keys
+*.pem
+*.key
+id_rsa
+id_rsa.pub
+
+# OS-generated files
+.DS_Store
+Thumbs.db
+
+# Backup folders (optional, if you don’t want to track backups)
+E:/Backup/
+
+# IDE/Editor-specific files
+.vscode/
+.idea/
+
+# Ignore SCP temporary files
+*.tmp
+
+# Ignore specific output or temp folders
+dist/
+temp/
+
+path
