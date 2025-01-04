@@ -1,28 +1,10 @@
 const axios = require("axios")
 const fs = require("fs")
-const links = require("../data/links")
-
-const TOKEN = process.env.TOKEN
-const OAUTH_TOKEN = process.env.OAUTH_TOKEN
+const xlsx = require("xlsx")
 
 function extractFileId(link) {
   const match = link.match(/\/file\/d\/(.*?)\//)
   return match ? match[1] : null
-}
-
-async function getFileMetadata(fileId) {
-  try {
-    const url = `https://www.googleapis.com/drive/v3/files/${fileId}?fields=name`
-    const response = await axios.get(url, {
-      headers: {
-        Authorization: `Bearer ${OAUTH_TOKEN}`,
-      },
-    })
-    return response.data.name
-  } catch (error) {
-    console.error(`Error fetching file metadata: ${error.message}`)
-    return null
-  }
 }
 
 async function downloadFile(fileId, outputFileName) {
@@ -30,7 +12,7 @@ async function downloadFile(fileId, outputFileName) {
     const url = `https://drive.google.com/uc?export=download&id=${fileId}`
     const response = await axios.get(url, {
       headers: {
-        Cookie: `SID=${TOKEN}`,
+        Cookie: `SID=${process.env.SID_TOKEN}`,
       },
       responseType: "stream",
     })
@@ -46,22 +28,39 @@ async function downloadFile(fileId, outputFileName) {
       writer.on("error", reject)
     })
   } catch (error) {
-    console.error(`File download error: ${error.message}`)
+    console.error(`Error downloading file ${fileId}: ${error.message}`)
   }
 }
 
 (async () => {
-  for (const [index, link] of links.entries()) {
+  const inputXls = "./data/names_and_links.xlsx"
+  const outputDir = "/data/downloads"
+
+  if (!fs.existsSync(outputDir)) {
+    fs.mkdirSync(outputDir)
+  }
+
+  const workbook = xlsx.readFile(inputXls)
+  const sheetName = workbook.SheetNames[0]
+  const sheet = workbook.Sheets[sheetName]
+  const rows = xlsx.utils.sheet_to_json(sheet, { header: 1 })
+
+  for (const [index, row] of rows.entries()) {
+    if (index === 0) continue
+
+    const [fileName, link] = row
+    if (!fileName || !link) {
+      console.error(`Invalid data in row ${index + 1}`)
+      continue
+    }
+
     const fileId = extractFileId(link)
     if (!fileId) {
-      console.error(`Unreachable link: ${link}`)
+      console.error(`Invalid link in row ${index + 1}: ${link}`)
       continue
     }
-    const originalFileName = await getFileMetadata(fileId)
-    if (!originalFileName) {
-      console.error(`Could not retrieve file name for link: ${link}`)
-      continue
-    }
-    await downloadFile(fileId, originalFileName)
+
+    const outputFileName = `${outputDir}/${fileName}.JDG`
+    await downloadFile(fileId, outputFileName)
   }
 })()
