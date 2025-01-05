@@ -60,7 +60,7 @@ async function downloadFile(fileId, outputFileName) {
       continue
     }
 
-    const outputFileName = `${outputDir}/${fileName}.JDG`
+    const outputFileName = `${outputDir}/${fileName}.JPG`
     await downloadFile(fileId, outputFileName)
   }
 })()
